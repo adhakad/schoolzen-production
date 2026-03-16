@@ -2,7 +2,6 @@
 const { SMTP_API_KEY, SMTP_HOST, SENDER_EMAIL_ADDRESS } = process.env;
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const { nanoid } = require('nanoid');
 const tokenService = require('../../services/admin-token');
 const AdminUserModel = require('../../models/users/admin-user');
@@ -12,20 +11,6 @@ const PaymentModel = require('../../models/payment');
 const OTPModel = require('../../models/otp');
 const Counter = require('../../models/counter');
 const { otpWhatsappMessage } = require('../../services/send-whatsapp-message');
-const smtp_host = SMTP_HOST;
-const smtp_api_key = SMTP_API_KEY;
-const sender_email_address = SENDER_EMAIL_ADDRESS;
-
-const transporter = nodemailer.createTransport({
-    host: smtp_host,
-    port: 587,
-    secure: false,
-    auth: {
-        user: `apikey`,
-        pass: smtp_api_key
-    },
-});
-
 
 let LoginAdmin = async (req, res, next) => {
     try {
@@ -379,41 +364,6 @@ let VerifyOTP = async (req, res, next) => {
         return res.status(500).json({ errorMsg: "Internal server error!" });
     }
 }
-let sendEmail = async (email, secureOtp) => {
-    const mailOptions = {
-        from: {
-            name: 'Schooliya',
-            address: sender_email_address
-        },
-        to: email,
-        subject: 'Your OTP for Email Verification',
-        text: `Your OTP for Schooliya verification is: ${secureOtp}\n\nIf you didn't request this, please ignore this email.`,
-        html: `<html><body>
-        <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; border-radius: 10px; max-width: 600px; margin: auto;">
-            <p style="color: #555; font-size: 16px;">
-                We received a request to verify your email address for your Schooliya account. Please use the OTP below to complete your verification:
-            </p>
-            <p style="font-size: 22px; color: #000; text-align: center; letter-spacing: 2px; margin: 20px 0;">
-                <strong>${secureOtp}</strong>
-            </p>
-            <p style="color: #555; font-size: 16px;">
-                If you didn’t request this, please ignore this email.
-            </p>
-            <p style="color: #555; font-size: 16px;">
-                Best regards,<br/>
-                The Schooliya Team
-            </p>
-        </div>
-        </body></html>
-        `
-    };
-
-    try {
-        const result = await transporter.sendMail(mailOptions);
-    } catch (error) {
-        console.error("Failed to send email:", err.message);
-    }
-};
 
 let ResetPassword = async (req, res, next) => {
     const { mobile, password } = req.body;
